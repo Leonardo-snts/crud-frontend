@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { fetchTasks, createTask, updateTask, deleteTask } from '../services/api';
-import { PencilIcon, TrashIcon } from '@heroicons/react/solid';
+import { PencilIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/solid';
+import axios from 'axios';
 
 export interface Task {
     id: number;
@@ -21,57 +22,71 @@ const TaskList: React.FC = () => {
 
     const getTasks = async () => {
         const response = await fetchTasks();
-        setTasks(response.data);
+        const sortedTasks = response.data.sort((a: Task, b: Task) => a.ordem - b.ordem);
+        setTasks(sortedTasks);
     };
 
     useEffect(() => {
         getTasks();
     }, []);
 
+    // Função para reordenar as tarefas e atualizar a ordem na API
+    const reordenarTarefas = async (updatedTasks: Task[]) => {
+        const reorderedTasks = updatedTasks.map((task, index) => ({ ...task, ordem: index + 1 }));
+        setTasks(reorderedTasks);
+
+        for (const task of reorderedTasks) {
+            await updateTask(task.id, { ...task, ordem: task.ordem });
+        }
+    };
+
     const handleAddTask = async () => {
         if (!newTask.tarefa || !newTask.valor || !newTask.data_final) {
             setError('Todos os campos precisam ser preenchidos.');
-            setShowErrorModal(true); // Exibe o modal de erro
+            setShowErrorModal(true);
             return;
         }
 
         try {
             const response = await createTask({ ...newTask, ordem: tasks.length + 1 });
-            setTasks([...tasks, response.data]);
-            setNewTask({ tarefa: '', valor: 0, data_final: '', ordem: tasks.length + 2 });
-            setError(null); // Limpar erro após adicionar com sucesso
-            setShowErrorModal(false); // Fecha o modal de erro
+            const updatedTasks = [...tasks, response.data];
+            await reordenarTarefas(updatedTasks);
+            setNewTask({ tarefa: '', valor: 0, data_final: '', ordem: updatedTasks.length + 1 });
+            setError(null);
+            setShowErrorModal(false);
         } catch (err) {
-            setError('Já existe uma tarefa com esse nome.'); // Captura erro e exibe a mensagem
-            setShowErrorModal(true); // Exibe o modal de erro
+            setError('Já existe uma tarefa com esse nome.');
+            setShowErrorModal(true);
         }
     };
 
     const handleUpdateTask = async (task: Task) => {
         if (!task.tarefa || !task.valor || !task.data_final) {
             setError('Todos os campos precisam ser preenchidos.');
-            setShowErrorModal(true); // Exibe o modal de erro
+            setShowErrorModal(true);
             return;
         }
 
         try {
             if (editingTask) {
                 await updateTask(task.id, task);
-                setTasks(tasks.map((t) => (t.id === task.id ? task : t)));
+                const updatedTasks = tasks.map((t) => (t.id === task.id ? task : t));
+                await reordenarTarefas(updatedTasks);
                 setEditingTask(null);
-                setError(null); // Limpar erro após edição bem-sucedida
-                setShowErrorModal(false); // Fecha o modal de erro
+                setError(null);
+                setShowErrorModal(false);
             }
         } catch (err) {
-            setError('Já existe uma tarefa com esse nome.'); // Captura erro e exibe a mensagem
-            setShowErrorModal(true); // Exibe o modal de erro
+            setError('Já existe uma tarefa com esse nome.');
+            setShowErrorModal(true);
         }
     };
 
     const handleDeleteTask = async () => {
         if (taskToDelete !== null) {
             await deleteTask(taskToDelete);
-            setTasks(tasks.filter((task) => task.id !== taskToDelete));
+            const updatedTasks = tasks.filter((task) => task.id !== taskToDelete);
+            await reordenarTarefas(updatedTasks);
             setShowModal(false);
             setTaskToDelete(null);
         }
@@ -84,6 +99,22 @@ const TaskList: React.FC = () => {
 
     const startEdit = (task: Task) => {
         setEditingTask(task);
+    };
+
+    const moveTaskUp = async (index: number) => {
+        if (index > 0) {
+            const newTasks = [...tasks];
+            [newTasks[index - 1], newTasks[index]] = [newTasks[index], newTasks[index - 1]];
+            await reordenarTarefas(newTasks);
+        }
+    };
+
+    const moveTaskDown = async (index: number) => {
+        if (index < tasks.length - 1) {
+            const newTasks = [...tasks];
+            [newTasks[index + 1], newTasks[index]] = [newTasks[index], newTasks[index + 1]];
+            await reordenarTarefas(newTasks);
+        }
     };
 
     return (
@@ -106,7 +137,7 @@ const TaskList: React.FC = () => {
                 </div>
             )}
             <div className="space-y-4">
-                {tasks.map((task) => (
+                {tasks.map((task, index) => (
                     <div
                         key={task.id}
                         className={`flex justify-between items-center p-4 border rounded-lg shadow ${task.valor >= 1000 ? 'bg-yellow-200' : 'bg-white'}`}
@@ -160,6 +191,14 @@ const TaskList: React.FC = () => {
                                     <p className="text-gray-600">Data Limite: {task.data_final}</p>
                                 </div>
                                 <div className="flex space-x-2">
+                                    <ArrowUpIcon
+                                        className="w-5 h-5 text-blue-500 cursor-pointer hover:text-blue-600"
+                                        onClick={() => moveTaskUp(index)}
+                                    />
+                                    <ArrowDownIcon
+                                        className="w-5 h-5 text-blue-500 cursor-pointer hover:text-blue-600"
+                                        onClick={() => moveTaskDown(index)}
+                                    />
                                     <PencilIcon
                                         className="w-5 h-5 text-yellow-500 cursor-pointer hover:text-yellow-600"
                                         onClick={() => startEdit(task)}
