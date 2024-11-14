@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { fetchTasks, createTask, updateTask, deleteTask } from '../services/api';
+import { PencilIcon, TrashIcon } from '@heroicons/react/solid';
 
 export interface Task {
     id: number;
@@ -13,6 +14,10 @@ const TaskList: React.FC = () => {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [editingTask, setEditingTask] = useState<Task | null>(null);
     const [newTask, setNewTask] = useState({ tarefa: '', valor: 0, data_final: '', ordem: tasks.length + 1 });
+    const [showModal, setShowModal] = useState(false);
+    const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [showErrorModal, setShowErrorModal] = useState(false);
 
     const getTasks = async () => {
         const response = await fetchTasks();
@@ -24,22 +29,57 @@ const TaskList: React.FC = () => {
     }, []);
 
     const handleAddTask = async () => {
-        const response = await createTask({ ...newTask, ordem: tasks.length + 1 });
-        setTasks([...tasks, response.data]);
-        setNewTask({ tarefa: '', valor: 0, data_final: '', ordem: tasks.length + 2 });
-    };
+        if (!newTask.tarefa || !newTask.valor || !newTask.data_final) {
+            setError('Todos os campos precisam ser preenchidos.');
+            setShowErrorModal(true); // Exibe o modal de erro
+            return;
+        }
 
-    const handleUpdateTask = async (task: Task) => {
-        if (editingTask) {
-            await updateTask(task.id, task);
-            setTasks(tasks.map((t) => (t.id === task.id ? task : t)));
-            setEditingTask(null);
+        try {
+            const response = await createTask({ ...newTask, ordem: tasks.length + 1 });
+            setTasks([...tasks, response.data]);
+            setNewTask({ tarefa: '', valor: 0, data_final: '', ordem: tasks.length + 2 });
+            setError(null); // Limpar erro após adicionar com sucesso
+            setShowErrorModal(false); // Fecha o modal de erro
+        } catch (err) {
+            setError('Já existe uma tarefa com esse nome.'); // Captura erro e exibe a mensagem
+            setShowErrorModal(true); // Exibe o modal de erro
         }
     };
 
-    const handleDeleteTask = async (id: number) => {
-        await deleteTask(id);
-        setTasks(tasks.filter((task) => task.id !== id));
+    const handleUpdateTask = async (task: Task) => {
+        if (!task.tarefa || !task.valor || !task.data_final) {
+            setError('Todos os campos precisam ser preenchidos.');
+            setShowErrorModal(true); // Exibe o modal de erro
+            return;
+        }
+
+        try {
+            if (editingTask) {
+                await updateTask(task.id, task);
+                setTasks(tasks.map((t) => (t.id === task.id ? task : t)));
+                setEditingTask(null);
+                setError(null); // Limpar erro após edição bem-sucedida
+                setShowErrorModal(false); // Fecha o modal de erro
+            }
+        } catch (err) {
+            setError('Já existe uma tarefa com esse nome.'); // Captura erro e exibe a mensagem
+            setShowErrorModal(true); // Exibe o modal de erro
+        }
+    };
+
+    const handleDeleteTask = async () => {
+        if (taskToDelete !== null) {
+            await deleteTask(taskToDelete);
+            setTasks(tasks.filter((task) => task.id !== taskToDelete));
+            setShowModal(false);
+            setTaskToDelete(null);
+        }
+    };
+
+    const confirmDelete = (id: number) => {
+        setTaskToDelete(id);
+        setShowModal(true);
     };
 
     const startEdit = (task: Task) => {
@@ -47,20 +87,33 @@ const TaskList: React.FC = () => {
     };
 
     return (
-        <div className="max-w-2xl mx-auto p-4">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Lista de Tarefas</h2>
+        <div className="max-w-2xl p-4 mx-auto">
+            <h2 className="mb-4 text-2xl font-bold text-gray-800">Lista de Tarefas</h2>
+            {showErrorModal && (
+                <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-40 left-[-8px]">
+                    <div className="w-full max-w-sm p-6 bg-white rounded-lg shadow-lg">
+                        <h3 className="mb-4 text-lg font-bold text-gray-800">Erro</h3>
+                        <p className="mb-6 text-gray-600">{error}</p>
+                        <div className="flex justify-end gap-4">
+                            <button
+                                onClick={() => setShowErrorModal(false)}
+                                className="px-4 py-2 text-gray-800 bg-gray-200 rounded-md hover:bg-gray-300"
+                            >
+                                Fechar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className="space-y-4">
                 {tasks.map((task) => (
                     <div
                         key={task.id}
-                        className={`p-4 border rounded-lg shadow ${
-                            task.valor >= 1000 ? 'bg-yellow-200' : 'bg-white'
-                        }`}
+                        className={`flex justify-between items-center p-4 border rounded-lg shadow ${task.valor >= 1000 ? 'bg-yellow-200' : 'bg-white'}`}
                     >
                         {editingTask?.id === task.id ? (
-                            <div className="space-y-2">
-
-                                <h2 className="text-1xl font-bold text-gray-800">Nome da Tarefa:</h2>
+                            <div className="w-full space-y-2">
+                                <h2 className="font-bold text-gray-800 text-1xl">Nome da Tarefa:</h2>
                                 <input
                                     type="text"
                                     className="w-full p-2 border rounded"
@@ -68,7 +121,7 @@ const TaskList: React.FC = () => {
                                     onChange={(e) => setEditingTask({ ...editingTask, tarefa: e.target.value })}
                                 />
 
-                                <h2 className="text-1xl font-bold text-gray-800 mb-4">Custo:</h2>
+                                <h2 className="mb-4 font-bold text-gray-800 text-1xl">Custo:</h2>
                                 <input
                                     type="number"
                                     className="w-full p-2 border rounded"
@@ -76,31 +129,23 @@ const TaskList: React.FC = () => {
                                     onChange={(e) => setEditingTask({ ...editingTask, valor: parseFloat(e.target.value) })}
                                 />
 
-                                <h2 className="text-1xl font-bold text-gray-800 mb-4">Data Limite:</h2>
+                                <h2 className="mb-4 font-bold text-gray-800 text-1xl">Data Limite:</h2>
                                 <input
                                     type="date"
                                     className="w-full p-2 border rounded"
                                     value={editingTask.data_final}
                                     onChange={(e) => setEditingTask({ ...editingTask, data_final: e.target.value })}
                                 />
-                                
-                                <h2 className="text-1xl font-bold text-gray-800 mb-4">Posição de Ordem:</h2>
-                                <input
-                                    type="number"
-                                    className="w-full p-2 border rounded"
-                                    value={editingTask.ordem}
-                                    onChange={(e) => setEditingTask({ ...editingTask, ordem: parseInt(e.target.value) })}
-                                />
 
                                 <div className="flex space-x-2">
                                     <button
-                                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                        className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
                                         onClick={() => handleUpdateTask(editingTask)}
                                     >
                                         Salvar
                                     </button>
                                     <button
-                                        className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                                        className="px-4 py-2 text-white bg-gray-500 rounded hover:bg-gray-600"
                                         onClick={() => setEditingTask(null)}
                                     >
                                         Cancelar
@@ -108,32 +153,51 @@ const TaskList: React.FC = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div>
-                                <p className="text-lg font-semibold">{task.tarefa}</p>
-                                <p className="text-gray-600">R$ {task.valor}</p>
-                                <p className="text-gray-600">Data Limite: {task.data_final}</p>
-                                {/* <p className="text-gray-600">Ordem: {task.ordem}</p> */}
-                                <div className="flex space-x-2 mt-2">
-                                    <button
-                                        className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                            <div className="flex items-center justify-between w-full">
+                                <div>
+                                    <p className="text-lg font-semibold">{task.tarefa}</p>
+                                    <p className="text-gray-600">R$ {task.valor}</p>
+                                    <p className="text-gray-600">Data Limite: {task.data_final}</p>
+                                </div>
+                                <div className="flex space-x-2">
+                                    <PencilIcon
+                                        className="w-5 h-5 text-yellow-500 cursor-pointer hover:text-yellow-600"
                                         onClick={() => startEdit(task)}
-                                    >
-                                        Editar
-                                    </button>
-                                    <button
-                                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                                        onClick={() => handleDeleteTask(task.id)}
-                                    >
-                                        Excluir
-                                    </button>
+                                    />
+                                    <TrashIcon
+                                        className="w-5 h-5 text-red-500 cursor-pointer hover:text-red-600"
+                                        onClick={() => confirmDelete(task.id)}
+                                    />
+                                    {showModal && (
+                                        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-40 left-[-8px]">
+                                            <div className="w-full max-w-sm p-6 bg-white rounded-lg shadow-lg">
+                                                <h3 className="mb-4 text-lg font-bold text-gray-800">Confirmação de Exclusão</h3>
+                                                <p className="mb-6 text-gray-600">Você tem certeza que deseja excluir esta tarefa?</p>
+                                                <div className="flex justify-end gap-4">
+                                                    <button
+                                                        onClick={() => setShowModal(false)}
+                                                        className="px-4 py-2 text-gray-800 bg-gray-200 rounded-md hover:bg-gray-300"
+                                                    >
+                                                        Cancelar
+                                                    </button>
+                                                    <button
+                                                        onClick={handleDeleteTask}
+                                                        className="px-4 py-2 text-white bg-red-500 rounded-md hover:bg-red-600"
+                                                    >
+                                                        Excluir
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
                     </div>
                 ))}
             </div>
-            <div className="mt-8 p-4 border rounded-lg bg-gray-50">
-                <h3 className="text-xl font-semibold mb-2">Adicionar Nova Tarefa</h3>
+            <div className="p-4 mt-8 border rounded-lg bg-gray-50">
+                <h3 className="mb-2 text-xl font-semibold">Adicionar Nova Tarefa</h3>
                 <div className="space-y-2">
                     <input
                         type="text"
@@ -155,15 +219,8 @@ const TaskList: React.FC = () => {
                         value={newTask.data_final}
                         onChange={(e) => setNewTask({ ...newTask, data_final: e.target.value })}
                     />
-                    {/* <input
-                        type="number"
-                        placeholder="Ordem"
-                        className="w-full p-2 border rounded"
-                        value={newTask.ordem}
-                        onChange={(e) => setNewTask({ ...newTask, ordem: parseInt(e.target.value) })}
-                    /> */}
                     <button
-                        className="w-full px-4 py-2 mt-4 bg-green-500 text-white rounded hover:bg-green-600"
+                        className="w-full px-4 py-2 mt-4 text-white bg-green-500 rounded hover:bg-green-600"
                         onClick={handleAddTask}
                     >
                         Incluir
