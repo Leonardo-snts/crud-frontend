@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Task } from "../components/TaskList";
+import { Task } from "../pages/TaskList";
 
 const api = axios.create({
   baseURL: "http://localhost:8000/api/", // ajuste para a URL da sua API
