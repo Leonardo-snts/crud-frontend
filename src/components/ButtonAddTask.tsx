@@ -10,7 +10,7 @@ const ButtonAddTask = () => {
 
     return (
         <button
-            className="fixed px-4 py-2 text-white transform -translate-x-1/2 bg-green-500 rounded-full shadow-lg bottom-4 left-1/2 hover:bg-green-600 focus:outline-none"
+            className="sticky px-4 py-2 text-white transform -translate-x-1/2 bg-green-500 rounded-full shadow-lg bottom-4 left-1/2 hover:bg-green-600 focus:outline-none"
             onClick={handleAddTask}
         >
             Adicionar Tarefa

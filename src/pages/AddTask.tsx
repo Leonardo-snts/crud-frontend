@@ -27,7 +27,6 @@ const AddTask: React.FC = () => {
         getTasks();
     }, []);
 
-    // Função para reordenar as tarefas e atualizar a ordem na API
     const reordenarTarefas = async (updatedTasks: Task[]) => {
         const reorderedTasks = updatedTasks.map((task, index) => ({ ...task, ordem: index + 1 }));
         setTasks(reorderedTasks);
@@ -61,47 +60,59 @@ const AddTask: React.FC = () => {
         }
     };
 
+    const getTodayDate = () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     return (
-        <div className="p-4 mt-8 border rounded-lg bg-gray-50">
-            {error && (
-                <div className="p-2 mb-4 text-red-800 bg-red-200 rounded">
-                    {error}
+        <div className='h-screen max-h-screen p-4 '>
+            <div className="max-w-md p-4 mx-auto mt-8 border rounded-lg">
+                {error && (
+                    <div className="p-2 mb-4 text-red-800 bg-red-200 rounded">
+                        {error}
+                    </div>
+                )}
+                {successMessage && (
+                    <div className="p-2 mb-4 font-bold text-black bg-green-400 rounded">
+                        {successMessage}
+                    </div>
+                )}
+                <h3 className="mb-2 text-xl font-semibold">Adicionar Nova Tarefa</h3>
+                <div className="space-y-2 ">
+                    Nome da tarefa:
+                    <input
+                        type="text"
+                        className="w-full p-2 bg-transparent border rounded"
+                        value={newTask.tarefa}
+                        onChange={(e) => setNewTask({ ...newTask, tarefa: e.target.value })}
+                    /> 
+                    Valor da tarefa (R$00,00):
+                    <input
+                        type="number"
+                        className="w-full p-2 bg-transparent border rounded"
+                        value={newTask.valor}
+                        onChange={(e) => setNewTask({ ...newTask, valor: parseFloat(e.target.value) })}
+                    />
+                    Data Final da tarefa:
+                    <input
+                        type="date"
+                        className="w-full p-2 bg-transparent border rounded"
+                        min={getTodayDate()}
+                        value={newTask.data_final}
+                        onChange={(e) => setNewTask({ ...newTask, data_final: e.target.value })}
+                    />
+                    <button
+                        className="w-full px-4 py-2 mt-4 text-white bg-green-500 rounded hover:bg-green-600"
+                        onClick={handleAddTask}
+                    >
+                        Incluir
+                    </button>
+                    <ButtonHome />
                 </div>
-            )}
-            {successMessage && (
-                <div className="p-2 mb-4 font-bold text-black bg-green-400 rounded">
-                    {successMessage}
-                </div>
-            )}
-            <h3 className="mb-2 text-xl font-semibold">Adicionar Nova Tarefa</h3>
-            <div className="space-y-2">
-                <input
-                    type="text"
-                    placeholder="Nome da tarefa"
-                    className="w-full p-2 border rounded"
-                    value={newTask.tarefa}
-                    onChange={(e) => setNewTask({ ...newTask, tarefa: e.target.value })}
-                />
-                <input
-                    type="number"
-                    placeholder="Custo (R$)"
-                    className="w-full p-2 border rounded"
-                    value={newTask.valor}
-                    onChange={(e) => setNewTask({ ...newTask, valor: parseFloat(e.target.value) })}
-                />
-                <input
-                    type="date"
-                    className="w-full p-2 border rounded"
-                    value={newTask.data_final}
-                    onChange={(e) => setNewTask({ ...newTask, data_final: e.target.value })}
-                />
-                <button
-                    className="w-full px-4 py-2 mt-4 text-white bg-green-500 rounded hover:bg-green-600"
-                    onClick={handleAddTask}
-                >
-                    Incluir
-                </button>
-                <ButtonHome />
             </div>
         </div>
     );

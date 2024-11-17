@@ -109,10 +109,18 @@ const TaskList: React.FC = () => {
         }
     };
 
+    const getTodayDate = () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     return (
         <div className={`max-w-2xl p-4 mx-auto `}>
             <h2 className="mb-4 text-2xl font-bold">LISTA DE TAREFAS</h2>
-            
+
             {showErrorModal && (
                 <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-40 left-[-8px]">
                     <div className="w-full max-w-sm p-6 bg-white rounded-lg shadow-lg">
@@ -145,31 +153,33 @@ const TaskList: React.FC = () => {
                                             ref={provided.innerRef}
                                             {...provided.draggableProps}
                                             {...provided.dragHandleProps}
-                                            className={`flex justify-between items-center p-4 border rounded-lg shadow `}
+                                            className={`flex justify-between items-center p-4 border rounded-lg shadow  ${task.valor >= 1000 ? 'bg-yellow-200 text-black' : ''} `}
+                                        //${task.valor >= 1000 ? 'bg-yellow-200' : theme === 'light' ? 'bg-gray-200' : 'bg-gray-700'}
                                         >
 
                                             {editingTask?.id === task.id ? (
-                                                <div className="w-full space-y-2">
-                                                    <h2 className="font-bold text-gray-800 text-1xl">Nome da Tarefa:</h2>
+                                                <div className={`w-full p-2 bg-transparent border rounded  ${task.valor >= 1000 ? 'border-gray-500' : ''}`}>
+                                                    <h2 className="font-bold text-1xl">Nome da Tarefa:</h2>
                                                     <input
                                                         type="text"
-                                                        className="w-full p-2 border rounded"
+                                                        className={`w-full p-2 bg-transparent border rounded ${task.valor >= 1000 ? 'border-gray-500' : ''}`}
                                                         value={editingTask.tarefa}
                                                         onChange={(e) => setEditingTask({ ...editingTask, tarefa: e.target.value })}
                                                     />
 
-                                                    <h2 className="mb-4 font-bold text-gray-800 text-1xl">Custo:</h2>
+                                                    <h2 className="mb-4 font-bold text-1xl">Valor da tarefa (R$00,00):</h2>
                                                     <input
                                                         type="number"
-                                                        className="w-full p-2 border rounded"
+                                                        className={`w-full p-2 bg-transparent border rounded ${task.valor >= 1000 ? 'border-gray-500' : ''}`}
                                                         value={editingTask.valor}
                                                         onChange={(e) => setEditingTask({ ...editingTask, valor: parseFloat(e.target.value) })}
                                                     />
 
-                                                    <h2 className="mb-4 font-bold text-gray-800 text-1xl">Data Limite:</h2>
+                                                    <h2 className="mb-4 font-bold text-1xl">Data Final da tarefa:</h2>
                                                     <input
                                                         type="date"
-                                                        className="w-full p-2 border rounded"
+                                                        className={`w-full p-2 bg-transparent border rounded ${task.valor >= 1000 ? 'border-gray-500' : ''}`}
+                                                        min={getTodayDate()}
                                                         value={editingTask.data_final}
                                                         onChange={(e) => setEditingTask({ ...editingTask, data_final: e.target.value })}
                                                     />
@@ -192,19 +202,28 @@ const TaskList: React.FC = () => {
                                             ) : (
                                                 <div className="flex items-center justify-between w-full ">
                                                     <div>
-                                                        <p className="text-lg font-semibold">{task.tarefa}</p>
-                                                        <p className="text-gray-600">R$ {task.valor}</p>
-                                                        <p className="text-gray-600">Data Limite: {task.data_final}</p>
+                                                        <p className="text-lg font-semibold">Tarefa: {task.tarefa}</p>
+                                                        <p className="">Valor: R$ {task.valor}</p>
+                                                        <p className="">
+                                                            Data Limite: {task.data_final ?
+                                                                new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                                                                    .format(new Date(task.data_final))
+                                                                : 'Data inválida'}
+                                                        </p>
                                                     </div>
-                                                    <div className="flex space-x-2">
-                                                        <ArrowUpIcon
-                                                            className="w-5 h-5 text-blue-500 cursor-pointer hover:text-blue-600"
-                                                            onClick={() => moveTaskUp(index)}
-                                                        />
-                                                        <ArrowDownIcon
-                                                            className="w-5 h-5 text-blue-500 cursor-pointer hover:text-blue-600"
-                                                            onClick={() => moveTaskDown(index)}
-                                                        />
+                                                    <div className="flex gap-1 space-x-4">
+                                                        {index > 0 && (
+                                                            <ArrowUpIcon
+                                                                className="w-5 h-5 text-blue-500 cursor-pointer hover:text-blue-600"
+                                                                onClick={() => moveTaskUp(index)}
+                                                            />
+                                                        )}
+                                                        {index < tasks.length - 1 && (
+                                                            <ArrowDownIcon
+                                                                className="w-5 h-5 text-blue-500 cursor-pointer hover:text-blue-600"
+                                                                onClick={() => moveTaskDown(index)}
+                                                            />
+                                                        )}
                                                         <PencilIcon
                                                             className="w-5 h-5 text-yellow-500 cursor-pointer hover:text-yellow-600"
                                                             onClick={() => startEdit(task)}
@@ -214,7 +233,7 @@ const TaskList: React.FC = () => {
                                                             onClick={() => confirmDelete(task.id)}
                                                         />
                                                         {showModal && (
-                                                            <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-40 left-[-8px]">
+                                                            <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-40 left-[-20px]">
                                                                 <div className="w-full max-w-sm p-6 bg-white rounded-lg shadow-lg">
                                                                     <h3 className="mb-4 text-lg font-bold text-gray-800">Confirmação de Exclusão</h3>
                                                                     <p className="mb-6 text-gray-600">Você tem certeza que deseja excluir esta tarefa?</p>
