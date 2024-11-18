@@ -35,7 +35,13 @@ const useTheme = () => {
 
 function App() {
     const { theme, toggleTheme } = useTheme();
-
+    const getTheme = () : string => {
+        const theme = localStorage.getItem('theme');
+        if(!theme){
+            return 'dark'
+        }
+        return theme
+    }
     return (
         <div
             className={`${theme === 'light' ? 'bg-white text-black border-black' : 'bg-gray-900 text-gray-100 border-gray-100'} h-full`}
@@ -44,13 +50,13 @@ function App() {
                 <div className="p-4">
                     <button
                         onClick={toggleTheme}
-                        className={`fixed top-4 right-4 flex items-center justify-center px-4 py-2 rounded-full shadow-lg transition-transform duration-300 
+                        className={`fixed top-4 right-4 flex items-center justify-center px-4 py-2 rounded-full shadow-lg transition-transform duration-300  
                             ${theme === 'light'
                                 ? 'bg-blue-700 text-blue-100 hover:bg-blue-800'
                                 : 'bg-yellow-900 text-gray-100 hover:bg-yellow-500'
                             }`}
                     >
-                        {theme === 'light' ? '🌙' : '☀'} {/* Sol e Lua */}
+                        {theme === 'light' ? '🌙' : '☀'}
                         <span className="ml-2">{theme === 'light' ? 'Modo Escuro' : 'Modo Claro'}</span>
                     </button>
                 </div>

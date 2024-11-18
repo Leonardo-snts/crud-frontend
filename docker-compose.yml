@@ -1,0 +1,19 @@
+version: '3.9'
+
+services:
+  react-app:
+    container_name: react_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    command: ["npm", "start"]
+
+volumes:
+  react_app_node_modules:
