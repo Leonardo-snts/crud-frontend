@@ -2,7 +2,7 @@ import axios from "axios";
 import { Task } from "../pages/TaskList";
 
 const api = axios.create({
-  baseURL: "http://18.228.11.240:8080/api/",
+  baseURL: "https://18.228.11.240:8080/api/",
 });
 
 export const fetchTasks = async () => {
