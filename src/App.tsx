@@ -2,6 +2,9 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import AddTask from './pages/AddTask';
 import TaskList from './pages/TaskList';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 
 const ThemeContext = createContext<{
     theme: 'dark' | 'light';
@@ -85,8 +88,10 @@ function App() {
 
 export default function AppWrapper() {
     return (
-        <ThemeProvider>
-            <App />
-        </ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+            <ThemeProvider>
+                <App />
+            </ThemeProvider>
+        </QueryClientProvider>
     );
 }
