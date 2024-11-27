@@ -2,18 +2,11 @@ import axios from "axios";
 import { Task } from "../pages/TaskList";
 import { setupCache } from "axios-cache-interceptor";
 
-const api = setupCache(
-  axios.create({
-    baseURL: "https://api-crud-96xx.onrender.com/api/", 
-    // baseURL: "http://127.0.0.1:8080/api/",
-  })
-);
-
-// const api = axios.create({
-//   baseURL: "https://api-crud-96xx.onrender.com/api/", 
-//   // baseURL: "http://127.0.0.1:8000/api/", 
-//   // baseURL: "http://127.0.0.1:8080/api/",
-// });
+const api = axios.create({
+  // baseURL: "http://127.0.0.1:8000/api/",
+  // baseURL: "http://localhost:8080/api/",
+  baseURL: "https://django-api-431548593185.southamerica-east1.run.app/api/",
+});
 
 export const fetchTasks = async () => {
   return await api.get("/tasks/");
