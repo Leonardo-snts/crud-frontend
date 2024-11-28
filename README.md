@@ -1,46 +1,67 @@
-# Getting Started with Create React App
+# Front-end com React e TypeScript
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Esse projeto foi construido com React e Typescript, fazendo uso de Tailwind CSS para estilizar o conteúdo da pagina o mesmo recebe os dados de uma API REST e proporciona ter controle de uma lista de tarefas e reoordenar cards com interações drag-and-drop ou por interação com botões.
 
-## Available Scripts
+## Diretórios e Arquivos
 
-In the project directory, you can run:
+### 1. components/
+Contém componentes reutilizáveis para a interface do usuário:
 
-### `npm start`
+ButtonAddTask.tsx: Botão que leva para página de adicinoar uma nova Tarefa.
+ButtonHome.tsx: Botão para voltar para a página principal.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### 2. pages/
+Define as páginas principais da aplicação:
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+AddTask.tsx: Página para adicionar uma nova tarefa.
+TaskList.tsx: Página que exibe a lista de tarefas e permite fazer edições e remoções.
 
-### `npm test`
+### 3. services/
+Armazena as funções de comunicação com a API:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+api.ts: Contém funções para interagir com os endpoints do backend, como criar, buscar, atualizar e deletar tarefas
 
-### `npm run build`
+## Arquivos Adicionais
+- App.tsx: Configura a estrutura principal e as rotas da aplicação.
+- index.tsx: Arquivo de entrada para renderizar a aplicação no DOM.
+- index.css: Configurações globais de estilo usando TailwindCSS.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Funcionalidades
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Página Inicial:
+Tem como objetivo listar de forma simples uma lista de tarefas, permitindo editar os dados de alguma tarefa, ou alterar a ordem de prioridade, além disso quando o valor da tarefa é maior ou igual a R$ 1000,00 a mesma aplica um fundo amarelo para a tarefa, possui ícones ao lado direito da tarefa:
+- Lixeira: Deleta a Tarefa (abre um modal para confirmar se deseja excluir)
+- Lápis: Edita a Tarefa de acordo com a necessidade
+- Seta para cima ou para baixo: move um card de Tarefa para cima ou para baixo alterando a ordem
+- Drag-and-drop: Adicional para mover os cards com interação de movimentos (segure o card e o arraste para a posição desejada)
+- Botão Adicionar Tarefa: Abre uma nova página para adicionar uma nova Tarefa
+- Botão de Tema: Alterna entre o Tema Escuro ou Claro
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Página de Adicionar Produtos
+Página onde tem um pequeno formulário para ser preenchido com os detalhes da Tarefa e exibe erros caso o formulário não esteja completo ou já exista algum com o mesmo nome:
+- Formulário: Campos para adicionar detalhes da Tarefa
+- Botão Incluir: Executa a adição da Tarefa
+- Botão Voltar: Volta para a página Inicial com as Tarefas adicionadas
+- Botão de Tema: Alterna entre o Tema Escuro ou Claro
 
-### `npm run eject`
+## Instalação e Execução
+### 1. Clone o repositório e navegue até a pasta do frontend:
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+ ```
+git clone <url-do-repositorio>
+cd src
+ ```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 2. Instale as dependências:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+ ```
+npm install
+ ```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### 3. Inicie o servidor de desenvolvimento:
 
-## Learn More
+ ```
+npm start
+ ```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Abra a aplicação: Acesse http://localhost:3000 no navegador.
